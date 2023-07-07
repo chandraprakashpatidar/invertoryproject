@@ -48,12 +48,10 @@ throw new Error("DeviceSerial_Number already exists");
 
   async saveExcelFile(data:any) {
     const workbook = new ExcelJS.Workbook();
-     const worksheet = workbook.addWorksheet('Inventory Data');
-     console.log(workbook,"workbook")
-     console.log(worksheet,"ssss")
-   // Add data to worksheet
-    for (let i = 0; i < data.length; i++) {
-      worksheet.addRow(data[i]);
+    const worksheet = workbook.addWorksheet('Inventory Data');
+  
+    for (const row of data) {
+      worksheet.addRow(row);
     }
   
     worksheet.autoFilter = {
@@ -61,19 +59,19 @@ throw new Error("DeviceSerial_Number already exists");
       to: `Z${worksheet.lastRow.number}`
     };
   
-
+  
     const columnWidths = [10, 15, 20, 15, 20, 15, 15, 15, 15, 15, 20, 15, 50]; 
     worksheet.columns.forEach((column, index) => {
       column.width = columnWidths[index];
     });
-
+  
     worksheet.getRow(1).font = { bold: true };
     worksheet.getRow(1).fill = {
       type: 'pattern',
       pattern: 'solid',
       fgColor: { argb: 'FF0000FF' } // Change the color as desired
     };
-
+  
     worksheet.eachRow((row, rowNumber) => {
       row.eachCell((cell, colNumber) => {
         cell.alignment = { vertical: 'middle', horizontal: 'center' };
@@ -85,45 +83,61 @@ throw new Error("DeviceSerial_Number already exists");
         };
       });
     });
+  const imgUrlColumnIndex = data[0].indexOf('imgurl') + 1;
   
-    // Add images to the workbook
-    //const extension = path.extname(imgUrl).toLowerCase().substr(1);
-    for (let i = 1; i < data.length; i++) {
-      const imgUrl = data[i][data[i].length-1];
-      console.log(imgUrl,"fff")
-      const extension = path.extname(imgUrl).toLowerCase().substr(1);
-      const imageId = workbook.addImage({
-        filename: `/home/smartaxiom/Documents/Invertoryproject/src/uploads/${imgUrl}`,
-        extension: extension
-      });
-    /*  const imagePath = `/home/smartaxiom/Documents/Invertoryproject/src/uploads/${imgUrl}`
-      //const myBase64Image = '/home/smartaxiom/Documents/Invertoryproject/src/uploads/${imgUrl}';
-      console.log(imagePath,"iii")
-      const imageBuffer = fs.readFileSync(imagePath);
-      const imageBase64 = imageBuffer.toString('base64');
-     console.log(imageBuffer)
-      const imageId = workbook.addImage({
-        base64: imageBase64,
-        extension: extension,
-      });*/
-      const imgUrlColumnIndex = data[0].indexOf('imgurl') + 1;
-
-      worksheet.addImage(imageId, {
-        tl: { col: imgUrlColumnIndex-1, row: i + 1}, // Add the image to the same row as the data
-        ext: { width: 470, height: 100 },
-        editAs: 'oneCell'
-      });
+  for (let i = 1; i < data.length; i++) {
+    const imgUrl = data[i][data[i].length - 1];
+    const extension = path.extname(imgUrl).toLowerCase().substr(1);
+    const imageId = workbook.addImage({
+      filename: `/home/smartaxiom/Documents/Invertoryproject/src/uploads/${imgUrl}`,
+      extension: extension
+    });
+  
+    // Add the image to the same row as the data
+    const imgRow = worksheet.getRow(i+1 );
+    imgRow.height = 100; // Set the height of the row
+    const imgCell = imgRow.getCell(imgUrlColumnIndex);
+    imgCell.fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FFFFFFFF' }
+    };
+    imgCell.border = {
+      top: { style: 'thin' },
+      left: { style: 'thin' },
+      bottom: { style: 'thin' },
+      right: { style: 'thin' }
+    };
+    imgCell.alignment = { vertical: 'middle', horizontal: 'center' };
+  
+    // Add space after the image
+    const spaceRow = worksheet.addRow([]);
+    spaceRow.height = 20; // Set the height of the empty row
+  
+   /* worksheet.addImage(imageId, {
+      tl: { col: imgUrlColumnIndex-1, row: i + 1}, // Add the image to the same row as the data
+      ext: { width: 470, height: 100 },
+      editAs: 'oneCell'
+    });*/
+   worksheet.addImage(imageId, {
+      tl: { col: imgUrlColumnIndex-1, row: i }, // Add the image to the same row as the data
+      ext: { width: 470, height: 130 },
+      editAs: 'oneCell'
+    });
   }
-  
+  worksheet.getRow(1).height = 20; // Set the height of the first row
+  worksheet.columns.forEach((column, index) => {
+    column.width = columnWidths[index];
+  });
     const buffer = await workbook.xlsx.writeBuffer();
     const desktopPath = path.join(os.homedir(), 'Desktop');
     const fileName = `inventory_${Date.now()}.xlsx`;
     const filePath = path.join(desktopPath, fileName);
-  console.log(fileName,"kkkkkkk")
-   fs.writeFileSync(filePath, buffer);
+  
+    fs.writeFileSync(filePath, buffer);
     console.log(`Excel file saved: ${filePath}`);
   
-    return filePath//this.convertExcelToJson(filePath)
+    return filePath;
 
   }
 
@@ -176,7 +190,7 @@ return data
 }*/
 
 
-async getallData(id)
+/*async getallData(id)
 {
   const filePath = '/home/smartaxiom/Desktop/inventory_1688562251545.xlsx';
 console.log(filePath)
@@ -184,7 +198,7 @@ console.log(filePath)
 console.log(data,"kkk")
 return 
 
-}
+}*/
 async getAllData(id) {
   const data = await this.inventoryModel.find().exec();
   console.log(data);
@@ -225,7 +239,7 @@ async saveExcelFile1(data) {
   worksheet.getRow(1).fill = {
     type: 'pattern',
     pattern: 'solid',
-    fgColor: { argb: 'FF0000FF' } // Change the color as desired
+    fgColor: { argb: 'FF0000FF' } 
   };
 
   worksheet.eachRow((row, rowNumber) => {
@@ -251,7 +265,7 @@ for (let i = 1; i < data.length; i++) {
 
   // Add the image to the same row as the data
   const imgRow = worksheet.getRow(i+1 );
-  imgRow.height = 100; // Set the height of the row
+  imgRow.height = 100;
   const imgCell = imgRow.getCell(imgUrlColumnIndex);
   imgCell.fill = {
     type: 'pattern',
@@ -268,20 +282,20 @@ for (let i = 1; i < data.length; i++) {
 
   // Add space after the image
   const spaceRow = worksheet.addRow([]);
-  spaceRow.height = 20; // Set the height of the empty row
+  spaceRow.height = 20; 
 
  /* worksheet.addImage(imageId, {
-    tl: { col: imgUrlColumnIndex-1, row: i + 1}, // Add the image to the same row as the data
+    tl: { col: imgUrlColumnIndex-1, row: i + 1},
     ext: { width: 470, height: 100 },
     editAs: 'oneCell'
   });*/
  worksheet.addImage(imageId, {
-    tl: { col: imgUrlColumnIndex-1, row: i }, // Add the image to the same row as the data
+    tl: { col: imgUrlColumnIndex-1, row: i }, 
     ext: { width: 470, height: 130 },
     editAs: 'oneCell'
   });
 }
-worksheet.getRow(1).height = 20; // Set the height of the first row
+worksheet.getRow(1).height = 20; 
 worksheet.columns.forEach((column, index) => {
   column.width = columnWidths[index];
 });
@@ -300,6 +314,23 @@ async deletedata(id: string) :Promise<any>{
   const result = await this.inventoryModel.deleteOne({ _id: id }).exec();
   return result;
 }
+
+async filedata(file)
+{
+  try {
+    const workbook = xlsx.readFile(file.path.toString());
+    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+    const jsonData = xlsx.utils.sheet_to_json(worksheet);
+    const myjsondata = await this.inventoryModel.insertMany(jsonData);
+    console.log(myjsondata,"kk")
+    return myjsondata;
+  } catch (error) {
+    throw new Error('Error processing file');
+  }
+}
+
+
+
 }
 
 
