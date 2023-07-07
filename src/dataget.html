@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Inventory Data</title>
+  </head>
+  <body>
+    <table>
+      <thead>
+        <tr>
+          <th>Product</th>
+          <th>Quantity</th>
+          <th>Price</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Product A</td>
+          <td>10</td>
+          <td>100</td>
+        </tr>
+        <tr>
+          <td>Product B</td>
+          <td>5</td>
+          <td>200</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <button onclick="generateExcel()">Generate Excel</button>
+
+    <script>
+      async function generateExcel() {
+        // Get table data from HTML
+        const table = document.querySelector('table');
+        const rows = table.getElementsByTagName('tr');
+        const data = [];
+
+        // Iterate over table rows
+        for (let i = 0; i < rows.length; i++) {
+          const row = rows[i];
+          const cells = row.getElementsByTagName('td');
+          const rowData = [];
+
+          // Iterate over cells in each row
+          for (let j = 0; j < cells.length; j++) {
+            rowData.push(cells[j].innerText);
+          }
+
+          data.push(rowData);
+        }
+
+        // Call saveExcelFile function with the retrieved data
+        await window.api.saveExcelFile(data);
+        alert('Excel file generated!');
+      }
+    </script>
+  </body>
+</html>
